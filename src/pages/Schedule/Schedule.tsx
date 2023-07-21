@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { toast } from 'react-toastify';
 import JadwalForm from '../../components/Forms/JadwalForms';
 import DoughnutChart from '../../components/Chart/DoughnutChart';
 import MatkulCard from '../../components/Cards/MatkulCard'
@@ -56,9 +57,11 @@ const Schedule : React.FC<scheduleProps> = ({ dropdownDataJurusan }) => {
         prediksi: string
     }[]>([]);
     const [score, setScore] = useState(0.0);
+    const [sks, setSks] = useState(0);
 
     // Fetch data process, update list jurusan every data is sent
     useEffect(() => {
+        resultData ?
         setData({
             labels: resultData.map((item: { nama: string }) => item.nama),
             datasets: [{
@@ -67,7 +70,10 @@ const Schedule : React.FC<scheduleProps> = ({ dropdownDataJurusan }) => {
                 backgroundColor: getRandomizedColor(arrayColor, resultData.length),
                 hoverOffset: 4
             }]
-        })
+        }) :
+        toast.error("Tidak terdapat mata kuliah yang memenuhi kondisi. Silahkan ubah data.", {
+            position: toast.POSITION.TOP_RIGHT
+        });
     }, [resultData]);
 
     return (
@@ -77,18 +83,23 @@ const Schedule : React.FC<scheduleProps> = ({ dropdownDataJurusan }) => {
                 <h3 className='text-lg py-1.5 font-semibold text-primaryBlue'>Atur perencanaan pengambilan mata kuliah Anda disini</h3>
             </div>
             <div className='h-1/6 bg-primaryGray py-2 flex items-center w-full'>
-                <JadwalForm jurusanData={dropdownDataJurusan} setResultData={setResultData} setScore={setScore}/>
+                <JadwalForm jurusanData={dropdownDataJurusan} setResultData={setResultData} setScore={setScore} setSks={setSks}/>
             </div>
             <div className='h-4/6 p-5 flex flex-row'>
                 <div className="w-1/2 flex flex-col h-full">
                     <div className="h-11/12 justify-center items-center flex">
-                        <DoughnutChart chartData={data} />
+                        {resultData && <DoughnutChart chartData={data} />}
                     </div>
                     <div className="h-1/12 pl-3">
                         {(resultData) ? (
-                            <span className='text-lg py-auto font-semibold text-primaryBlue'>
-                                Total IP : {score.toFixed(2)}
-                            </span>
+                            <div className="flex flex-row space-x-5">
+                                <div className='text-lg py-auto font-semibold text-primaryBlue'>
+                                    Total IP : {score.toFixed(2)}
+                                </div>
+                                <div className='text-lg py-auto font-semibold text-primaryBlue'>
+                                    SKS : {sks}
+                                </div>
+                            </div>
                             ) : (
                             '-'
                         )}

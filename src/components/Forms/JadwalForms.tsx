@@ -17,14 +17,16 @@ interface jadwalFormProps {
         prediksi: string
     }[]) => void;
     setScore : (value : number) => void;
+    setSks : (value : number) => void;
 }
 
 // Forms component
-const JadwalForm : React.FC<jadwalFormProps> = ({ jurusanData, setResultData, setScore }) => {
+const JadwalForm : React.FC<jadwalFormProps> = ({ jurusanData, setResultData, setScore, setSks }) => {
     const [jurusan, setJurusan] = useState(0);
     const dataSem = [1, 2, 3, 4, 5, 6, 7, 8];
     const [sem, setSem] = useState(0);
-    const [sks, setSks] = useState(1);
+    const [sksMin, setSksMin] = useState(1);
+    const [sksMax, setSksMax] = useState(1);
 
     const handleSubmitForms: React.MouseEventHandler<HTMLButtonElement> = async (event) => {
         event.preventDefault();
@@ -32,37 +34,49 @@ const JadwalForm : React.FC<jadwalFormProps> = ({ jurusanData, setResultData, se
             // Convert semester to string
             const semesterStr = dataSem[sem].toString();
 
-            // Build query parameters
-            const queryParams = new URLSearchParams({
-                jurusan: jurusanData[jurusan],
-                semester: semesterStr,
-                sks: sks.toString(),
-            });
-            
-            // Do the scheduling process
-            fetch(url + "/api/schedule?" + queryParams, {
-                method: "GET",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-            })
-            .then((res) => res.json())
-            .then((data) => {
-                // Update state
-                if (data.status) {
-                    setResultData(data.value);
-                    setScore(data.total / data.value.reduce((sum: number, course: { sks: number }) => sum + course.sks, 0));
-                } else {
-                    toast.error(data.message, {
-                        position: toast.POSITION.TOP_RIGHT
-                    });
-                    setResultData([]);
-                    setScore(0.00);
-                }
-                setJurusan(0);
-                setSks(1);
-                setSem(0);
-            });
+            if (sksMin <= sksMax) {
+                // Build query parameters
+                const queryParams = new URLSearchParams({
+                    jurusan: jurusanData[jurusan],
+                    semester: semesterStr,
+                    sksmin: sksMin.toString(),
+                    sksmax: sksMax.toString(),
+                });
+                
+                // Do the scheduling process
+                fetch(url + "/api/schedule?" + queryParams, {
+                    method: "GET",
+                    headers: {
+                    "Content-Type": "application/json",
+                    },
+                })
+                .then((res) => res.json())
+                .then((data) => {
+                    // Update state
+                    if (data.status) {
+                        setResultData(data.value);
+                        setScore(data.total);
+                        setSks(data.sks);
+                    } else {
+                        toast.error(data.message, {
+                            position: toast.POSITION.TOP_RIGHT
+                        });
+                        setResultData([]);
+                        setScore(0.00);
+                        setSks(0);
+                    }
+                    setJurusan(0);
+                    setSksMin(1);
+                    setSksMax(1);
+                    setSem(0);
+                });
+            } else {
+                toast.error("Nilai sks minimum harus lebih kecil dari maksimum", {
+                    position: toast.POSITION.TOP_RIGHT
+                });
+                setSksMin(1);
+                setSksMax(1);
+            }
             
         } catch (error) {
             toast.error("Error scheduling : " + error, {
@@ -75,7 +89,7 @@ const JadwalForm : React.FC<jadwalFormProps> = ({ jurusanData, setResultData, se
         <main className="px-6 w-full">
             <div className="max-w-screen-xl mx-auto px-0 text-gray-600">
                 <div className="mx-auto">
-                    <div className="flex flex-row items-center gap-y-5 gap-x-6 [&>*]:w-full sm:flex-row">
+                    <div className="flex flex-row items-center gap-y-5 gap-x-3 [&>*]:w-full sm:flex-row">
                         <div>
                             <label className="font-medium text-base">
                                 Nama Jurusan
@@ -90,15 +104,28 @@ const JadwalForm : React.FC<jadwalFormProps> = ({ jurusanData, setResultData, se
                         </div>
                         <div>
                             <label className="font-medium">
-                                Batasan SKS
+                                Batasan SKS (Min)
                             </label>
                             <input
                                 type="number"
                                 min="1"
                                 required
                                 className="w-full mt-2 px-4 py-1.5 text-gray-500 bg-white outline-none border focus:border-indigo-600 shadow-sm rounded-lg"
-                                value={sks}
-                                onChange={(e) => setSks(Number(e.target.value))}
+                                value={sksMin}
+                                onChange={(e) => setSksMin(Number(e.target.value))}
+                            />
+                        </div>
+                        <div>
+                            <label className="font-medium">
+                                Batasan SKS (Maks)
+                            </label>
+                            <input
+                                type="number"
+                                min="1"
+                                required
+                                className="w-full mt-2 px-4 py-1.5 text-gray-500 bg-white outline-none border focus:border-indigo-600 shadow-sm rounded-lg"
+                                value={sksMax}
+                                onChange={(e) => setSksMax(Number(e.target.value))}
                             />
                         </div>
                         <div>
