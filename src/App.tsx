@@ -7,7 +7,7 @@ import Sidebar from "./components/Sidebar/Sidebar";
 import Splashcreen from "./components/Splashscreen/Splashscreen";
 import { ToastContainer } from 'react-toastify';
 
-const url = import.meta.env.VITE_REACT_APP_BACKEND_URL_DEV;
+const url = import.meta.env.VITE_NODE_ENV=='development' ? import.meta.env.VITE_REACT_APP_BACKEND_URL_DEV : import.meta.env.VITE_REACT_APP_BACKEND_URL;
 
 const backgroundStyle = {
   backgroundColor : "#ECEEF9",

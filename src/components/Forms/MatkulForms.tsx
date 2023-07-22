@@ -3,7 +3,7 @@ import { toast } from 'react-toastify';
 import Dropdown from "../Dropdown/Dropdown";
 import 'react-toastify/dist/ReactToastify.css';
 
-const url = import.meta.env.VITE_REACT_APP_BACKEND_URL_DEV;
+const url = import.meta.env.VITE_NODE_ENV=='development' ? import.meta.env.VITE_REACT_APP_BACKEND_URL_DEV : import.meta.env.VITE_REACT_APP_BACKEND_URL;
 
 interface matkulFormProps {
     jurusanData: string[];
